@@ -1,0 +1,130 @@
+// DRAFT SCHEMA — refine in Phase 6. Sketched early so Phase 4 dummy data
+// matches real shapes and Phase 8 integration doesn't require a rewrite.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum PlanTier {
+  MONTHLY
+  ONE_TIME_CLAIM
+  YEARLY
+}
+
+enum ClaimStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  DISPUTED
+  APPROVED
+  PAID
+  DENIED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  subscription  Subscription?
+  claims        Claim[]
+  notifications Notification[]
+  chatMessages  ChatMessage[]
+}
+
+model Subscription {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id])
+  tier      PlanTier
+  startedAt DateTime  @default(now())
+  expiresAt DateTime?
+  isActive  Boolean   @default(true)
+}
+
+model Claim {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  title       String
+  status      ClaimStatus @default(DRAFT)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  policies    Policy[]
+  documents   Document[]
+  payments    Payment[]
+  chatMessages ChatMessage[]
+}
+
+model Policy {
+  id           String   @id @default(cuid())
+  claimId      String
+  claim        Claim    @relation(fields: [claimId], references: [id])
+  fileUrl      String
+  coverages    Json?    // AI-extracted: coverages, exclusions, limitations
+  uploadedAt   DateTime @default(now())
+}
+
+model Document {
+  id         String   @id @default(cuid())
+  claimId    String
+  claim      Claim    @relation(fields: [claimId], references: [id])
+  type       String   // e.g. "letter", "proof_of_loss", "receipt", "email_response"
+  fileUrl    String
+  createdAt  DateTime @default(now())
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  claimId     String?
+  claim       Claim?   @relation(fields: [claimId], references: [id])
+  amountCents Int
+  currency    String   @default("usd")
+  status      String   // pending, succeeded, failed, refunded
+  provider    String   // e.g. "stripe" — confirm choice in Phase 10
+  createdAt   DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  name      String
+  quote     String
+  avatarUrl String?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  claimId   String?
+  claim     Claim?   @relation(fields: [claimId], references: [id])
+  role      String   // "user" | "assistant" (Benji)
+  content   String
+  createdAt DateTime @default(now())
+}
