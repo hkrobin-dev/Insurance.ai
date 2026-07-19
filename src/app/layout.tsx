@@ -3,6 +3,7 @@
 import "./globals.css";
 import { Providers } from "@/components/shared/providers";
 import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 
 export default function RootLayout({
   children,
@@ -14,6 +15,7 @@ export default function RootLayout({
       <body>
         <Navbar></Navbar>
         <Providers>{children}</Providers>
+        <Footer></Footer>
       </body>
     </html>
   );
