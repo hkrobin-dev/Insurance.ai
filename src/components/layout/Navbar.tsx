@@ -5,7 +5,7 @@ const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Features", href: "/#features" },
   { label: "Pricing", href: "/#pricing" },
-  { label: "Contact", href: "/contact" },
+  { label: "Contact", href: "/#contact" },
   { label: "FAQ", href: "/#faq" },
 ];
 
@@ -35,12 +35,16 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm">
-            Log In
-          </Button>
-          <Button variant="primary" size="sm">
-            Sign Up
-          </Button>
+          <Link href="/login">
+            <Button variant="outline" size="sm">
+              Log In
+            </Button>
+          </Link>
+          <Link href="/register">
+            <Button variant="primary" size="sm">
+              Sign Up
+            </Button>
+          </Link>
         </div>
       </div>
     </header>
